@@ -1,53 +1,88 @@
-import React, { useState, useEffect } from 'react';
-import { commerce } from './lib/commerce';
+import React, { useState, useEffect } from "react";
+import { commerce } from "./lib/commerce";
+
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Components (importandolos todos a la vez, crear index.js en /components para imports)
-import {Products, Navbar, Cart } from './components'
-
+import { Products, Navbar, Cart } from "./components";
+import { set } from "react-hook-form";
 
 const App = () => {
+  //Use State para guardar los fetch products
+  const [products, setProducts] = useState([]);
 
-    //Use State para guardar los fetch products
-    const [products, setProducts] = useState([]);
+  //State para el cart
+  const [cart, setCart] = useState({});
 
-    //State para el cart
-    const [cart, setCart] = useState({});
+  //Fetch Products
+  const fetchProducts = async () => {
+    const { data } = await commerce.products.list();
 
-    //Fetch Products
-    const fetchProducts = async () => {
-        const { data } = await commerce.products.list();
+    setProducts(data);
+  };
 
-        setProducts(data);
-    }
+  // Fetch Cart
+  const fetchCart = async () => {
+    setCart(await commerce.cart.retrieve());
+  };
 
-    // Fetch Cart
-    const fetchCart = async () => {
+  //Call the function
+  useEffect(() => {
+    fetchProducts();
+    fetchCart();
+  }, []);
 
-        setCart(await commerce.cart.retrieve());
-    }
+  // console.log(cart);
 
-    //Call the function
-    useEffect(() => {
-        fetchProducts();
-        fetchCart();
-    }, []);
+  // add items to cart
+  const handleAddToCart = async (productId, quantity) => {
+    const { cart } = await commerce.cart.add(productId, quantity);
 
-    console.log(cart);
+    setCart(cart);
+  };
 
-    // add items to cart
-    const handleAddToCart = async (productId, quantity) => {
-        const item = await commerce.cart.add(productId, quantity)
+  const handleUpdateCartQty = async (productId, quantity) => {
+    const { cart } = await commerce.cart.update(productId, { quantity });
+    setCart(cart);
+  };
 
-        setCart(item.cart)
-    }
+  const handleRemoveFromCart = async (productId) => {
+    const { cart } = await commerce.cart.remove(productId);
+    setCart(cart);
+  };
+  const handleEmptyCart = async () => {
+    const { cart } = await commerce.cart.empty();
+    setCart(cart);
+  };
 
-    return (
-        <div>
-            <Navbar totalItems={cart.total_items} />
-            {/* <Products products={products} onAddtoCart={handleAddToCart}/> */}
-            <Cart cart={cart}/>
-        </div>
-    )
-}
+  return (
+    <>
+      <Router>
+        <Navbar totalItems={cart.total_items} />
+        <Routes>
+          <Route
+            exact
+            path="/"
+            element={
+              <Products products={products} onAddToCart={handleAddToCart} />
+            }
+          />
+          <Route
+            exact
+            path="/cart"
+            element={
+              <Cart
+                cart={cart}
+                handleUpdateCartQty={handleUpdateCartQty}
+                handleRemoveFromCart={handleRemoveFromCart}
+                handleEmptyCart={handleEmptyCart}
+              />
+            }
+          />
+        </Routes>
+      </Router>
+    </>
+  );
+};
 
-export default App
+export default App;
