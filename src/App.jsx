@@ -4,7 +4,7 @@ import { commerce } from "./lib/commerce";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 // Components (importandolos todos a la vez, crear index.js en /components para imports)
-import { Products, Navbar, Cart } from "./components";
+import { Products, Navbar, Cart, Checkout } from "./components";
 import { set } from "react-hook-form";
 
 const App = () => {
@@ -79,6 +79,7 @@ const App = () => {
               />
             }
           />
+          <Route exact path="/checkout" element={<Checkout cart={cart} />} />
         </Routes>
       </Router>
     </>
